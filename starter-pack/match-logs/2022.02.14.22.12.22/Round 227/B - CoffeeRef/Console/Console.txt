@@ -1,0 +1,10 @@
+======================================================================================================
+round:227
+player: id:2 position: y:4 x:890 speed:3 state:HIT_MUD statesThatOccurredThisRound:USED_LIZARD, HIT_MUD boosting:false boost-counter:0 damage:4 score:-5 powerups: OIL:12, LIZARD:2, EMP:6, TWEET:7
+opponent: id:1 position: y:3 x:469 speed:0
+
+[░░░░░▓░░░░░░░░░░T░░░░░»*░░]
+[░░░░░▓░░░░░T░░░░░T▓░░░░░░░]
+[░░░░T░░░░░░░░░░░░░░░░░░▓░»]
+[░░░░▓2░#░░░░░░░░░░░▓░░░░░░]
+======================================================================================================

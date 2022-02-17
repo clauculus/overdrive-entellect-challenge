@@ -1,0 +1,10 @@
+======================================================================================================
+round:31
+player: id:2 position: y:3 x:225 speed:3 state:HIT_WALL statesThatOccurredThisRound:TURNING_LEFT, HIT_WALL boosting:false boost-counter:0 damage:4 score:21 powerups: OIL:2, BOOST:1, EMP:1, TWEET:1
+opponent: id:1 position: y:2 x:229 speed:9
+
+[░░░░░░░░░░░░░░░░░░░░░░░░░░]
+[░░*░░░░░░1░░░░»░░░░░░░░#░░]
+[░Φ░»░2░░░░░░▓░#░░░░#░░▓░░░]
+[░░░░░░░░░░░░▓▓░░T░░░░░░░░░]
+======================================================================================================

@@ -1,0 +1,10 @@
+======================================================================================================
+round:99
+player: id:1 position: y:4 x:503 speed:3 state:HIT_CYBER_TRUCK statesThatOccurredThisRound:ACCELERATING, HIT_CYBER_TRUCK boosting:false boost-counter:0 damage:2 score:8 powerups: OIL:9, EMP:7, TWEET:2
+opponent: id:2 position: y:2 x:949 speed:15
+
+[░░░░░░ΦΦ░░░░░░░░░░░T░░░░»░]
+[░░░░░░░░░░░░░░░░░░░░░░░T░░]
+[░»░░░#░░░░░░░░▓░░∱░░░░░░░░]
+[░░░░░1░░░░░░░░C░░░░░░░░░░░]
+======================================================================================================

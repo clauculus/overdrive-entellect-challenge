@@ -1,0 +1,10 @@
+======================================================================================================
+round:26
+player: id:1 position: y:3 x:187 speed:3 state:TURNING_LEFT statesThatOccurredThisRound:TURNING_LEFT boosting:false boost-counter:0 damage:4 score:9 powerups: LIZARD:1, EMP:2, TWEET:1
+opponent: id:2 position: y:2 x:150 speed:6
+
+[░░░░»░░░▓░░░░░░░░░░░░░░░░░]
+[░░░░░*░░*░░░░░░░░░»░░░░░░░]
+[░░░░░1░░▓░#░░░░░░░░░░░░░░▓]
+[░#░░░░░░▓░*░░░░░░░░*░░T▓░░]
+======================================================================================================

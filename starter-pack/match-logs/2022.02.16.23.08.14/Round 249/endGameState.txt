@@ -1,0 +1,6 @@
+Match seed: 160510
+
+The winner is: A - Coffee
+
+A - Coffee - score:300 health:0
+B - CoffeeRef - score:-48 health:0

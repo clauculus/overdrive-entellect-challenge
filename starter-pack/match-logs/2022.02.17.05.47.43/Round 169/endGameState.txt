@@ -1,0 +1,6 @@
+Match seed: 184479
+
+The winner is: A - Coffee
+
+A - Coffee - score:341 health:0
+B - evil-one - score:-9 health:0

@@ -1,6 +1,0 @@
-export enum TILE_TYPE {
-  HAZARD,
-  POWERUP,
-  FINISH_LINE,
-  EMPTY,
-}

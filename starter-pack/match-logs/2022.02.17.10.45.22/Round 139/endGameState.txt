@@ -1,6 +1,0 @@
-Match seed: 202340
-
-The winner is: B - evil-one
-
-A - Coffee - score:196 health:0
-B - evil-one - score:338 health:0

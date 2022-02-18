@@ -1,6 +1,0 @@
-Match seed: 201924
-
-The winner is: B - Coffee
-
-A - Coffee - score:173 health:0
-B - Coffee - score:217 health:0

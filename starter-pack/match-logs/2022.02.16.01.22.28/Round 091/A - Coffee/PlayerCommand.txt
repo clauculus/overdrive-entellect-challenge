@@ -1,3 +1,0 @@
-Command: ACCELERATE
-Execution time: 2ms
-Exception: 	at za.co.entelect.challenge.Main.main(Main.java:36)

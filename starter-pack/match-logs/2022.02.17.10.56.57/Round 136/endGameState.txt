@@ -1,6 +1,0 @@
-Match seed: 203035
-
-The winner is: B - NgengNgengBrrr
-
-A - Coffee - score:21 health:0
-B - NgengNgengBrrr - score:572 health:0

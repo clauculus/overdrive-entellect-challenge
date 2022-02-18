@@ -1,6 +1,0 @@
-Match seed: 202075
-
-The winner is: A - Coffee
-
-A - Coffee - score:215 health:0
-B - Coffee - score:185 health:0

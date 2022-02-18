@@ -1,6 +1,0 @@
-Match seed: 202198
-
-The winner is: B - Coffee
-
-A - Coffee - score:18 health:0
-B - Coffee - score:178 health:0

@@ -1,0 +1,10 @@
+======================================================================================================
+round:126
+player: id:2 position: y:4 x:1086 speed:3 state:HIT_CYBER_TRUCK statesThatOccurredThisRound:NOTHING, HIT_CYBER_TRUCK boosting:false boost-counter:0 damage:3 score:208 powerups: LIZARD:2, TWEET:5, EMP:7, OIL:10, BOOST:2
+opponent: id:1 position: y:3 x:929 speed:9
+
+[░▓░░░░░░░░░░░░░░░░░░░░░░░░]
+[░░▓░∱░░░░░░░░░░░░░▓▓░░░▓░░]
+[░░░▓░░▓░░░░░░░∱░░░░░░░░░░░]
+[░░░░░2»░░░░░░░░C░░░░░▓░░░▓]
+======================================================================================================

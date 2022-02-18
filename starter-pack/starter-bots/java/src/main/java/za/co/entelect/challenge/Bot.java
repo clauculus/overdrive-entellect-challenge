@@ -46,13 +46,14 @@ public class Bot {
     }
 
     public Command run() {
+        // Mengambil sejumlah blok di depan bot
         List<Object> blocks = getBlocksInFront(myCar.position.lane, myCar.position.block);
-//        System.out.println(blocks);
 
         ArrayList<Object> comp;
         ArrayList<Object> res;
         String best = "DO_NOTHING";
 
+        // Menghindari tabrakan dengan lawan, bisa dengan berbelok ke kanan atau kiri
         if (checkOpponentCollision()) {
             comp = whatIfTurnLeft();
             if (Boolean.TRUE.equals(comp.get(0))) {
@@ -75,15 +76,19 @@ public class Bot {
             }
         }
 
+        // Memperbaiki mobil dan mengurangi damage apabila damage menyebabkan kecepatan bot nol
         if (myCar.speed == 0 && myCar.damage == 5) {
             return C_FIX;
         }
 
+        // Mengeksekusi command yang terbatas apabila sedang menggunakan boost
+        // Memilih jalur yang paling memberikan kecepatan maksimum, lokasi terjauh, powerups terbanyak, damage paling sedikit, dan score terbanyak
         if (myCar.boosting) {
             List<Object> blocksBoost = getBlocksInFront(myCar.position.lane, myCar.position.block, myCar.speed);
             int myLaneObs = countObstacles(blocksBoost);
             int bestChoiceLane = 0;
 
+            // Lane saat ini ditandai dengan nol, lane di sebelah kiri -1, lane di sebelah kanan 1
             if (myCar.position.lane > 1) {
                 blocksBoost = getBlocksInFront(myCar.position.lane-1, myCar.position.block, myCar.speed);
                 blocksBoost.remove(blocksBoost.size()-1);
@@ -114,9 +119,18 @@ public class Bot {
             }
         }
 
+        // Algoritma Greedy memilih command terbaik untuk memenangkan permainan Overdrive
+        // Fungsi objektif:
+        // Memaksimumkan kecepatan, Memaksimumkan lokasi, Memaksimumkan perolehan powerups, Meminimumkan perolehan damage, dan Memaksimumkan perolehan score
+
+        // Memilih command terbaik bila tidak ada kejadian yang perlu dikecualikan
+        // Command terlebih dahulu dicek apakah valid atau tidak
+        // Command default adalah DO_NOTHING
         comp = whatIfDoNothing(blocks);
         best = "DO_NOTHING";
 //        System.out.println("DO_NOTHING");
+
+        // Membandingkan dengan ACCELERATE
         res = whatIfAccelerate(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("ACCELERATE");
@@ -125,6 +139,8 @@ public class Bot {
                 best = "ACCELERATE";
             }
         }
+
+        // Membandingkan dengan DECELERATE
         res = whatIfDecelerate(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("DECELERATE");
@@ -133,6 +149,8 @@ public class Bot {
                 best = "DECELERATE";
             }
         }
+
+        // Membandingkan dengan TURN_LEFT
         res = whatIfTurnLeft();
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("TURN_LEFT");
@@ -141,6 +159,8 @@ public class Bot {
                 best = "TURN_LEFT";
             }
         }
+
+        // Membandingkan dengan TURN_RIGHT
         res = whatIfTurnRight();
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("TURN_RIGHT");
@@ -149,6 +169,8 @@ public class Bot {
                 best = "TURN_RIGHT";
             }
         }
+
+        // Membandingkan dengan USE_BOOST
         res = whatIfUseBoost(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("USE_BOOST");
@@ -157,6 +179,8 @@ public class Bot {
                 best = "USE_BOOST";
             }
         }
+
+        // Membandingkan dengan USE_OIL
         res = whatIfUseOil(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("USE_OIL");
@@ -165,6 +189,8 @@ public class Bot {
                 best = "USE_OIL";
             }
         }
+
+        // Membandingkan dengan USE_LIZARD
         res = whatIfUseLizard();
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("USE_LIZARD");
@@ -173,6 +199,8 @@ public class Bot {
                 best = "USE_LIZARD";
             }
         }
+
+        // Membandingkan dengan USE_EMP
         res = whatIfUseEmp(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("USE_EMP");
@@ -181,6 +209,8 @@ public class Bot {
                 best = "USE_EMP";
             }
         }
+
+        // Membandingkan dengan FIX
         res = whatIfFix();
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("FIX");
@@ -189,6 +219,8 @@ public class Bot {
                 best = "FIX";
             }
         }
+
+        // Membandingkan dengan USE_TWEET
         res = whatIfUseTweet(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
 //            System.out.println("USE_TWEET");
@@ -197,6 +229,8 @@ public class Bot {
                 best = "USE_TWEET";
             }
         }
+
+        // Mengeksekusi command yang telah dipilih
         if (best.equals("DO_NOTHING")) {
 //            System.out.println("DO_NOTHING");
             return C_DO_NOTHING;
@@ -231,6 +265,7 @@ public class Bot {
         }
         else if (best.equals("USE_TWEET")) {
 //            System.out.println("USE_TWEET");
+            // Meletakkan TWEET pada posisi tepat di depan bot lawan
             return new TweetCommand(opponent.position.lane, opponent.position.block+opponent.speed+1);
         }
         else if (best.equals("USE_EMP")) {
@@ -245,6 +280,7 @@ public class Bot {
         return C_DO_NOTHING;
     }
 
+    // Mengambil blocks di depan bot sebanyak kecepatan maksimum bot
     private List<Object> getBlocksInFront(int lane, int block) {
         List<Lane[]> map = gameState.lanes;
         List<Object> blocks = new ArrayList<>();
@@ -265,6 +301,7 @@ public class Bot {
         return blocks;
     }
 
+    // Mengambil blocks di depan bot sebanyak spd
     private List<Object> getBlocksInFront(int lane, int block, int spd) {
         List<Lane[]> map = gameState.lanes;
         List<Object> blocks = new ArrayList<>();
@@ -285,6 +322,7 @@ public class Bot {
         return blocks;
     }
 
+    // Menghitung jumlah rintangan yang terdapat pada suatu lane
     private int countObstacles(List<Object> blocksBoost) {
         int obsInMyLane = Collections.frequency(blocksBoost, Terrain.MUD)
                 + Collections.frequency(blocksBoost, Terrain.OIL_SPILL)
@@ -295,10 +333,12 @@ public class Bot {
         return obsInMyLane;
     }
 
+    // Mengecek apakah sedang bertabrakan dengan lawan
     private boolean checkOpponentCollision() {
         return (opponent.position.lane == myCar.position.lane && opponent.position.block == myCar.position.block+1);
     }
 
+    // Mengembalikan kecepatan maksimum berdasar damage dan kecepatan saat ini
     private int getMaxDamageSpeed(int damage) {
         if (damage == 5) {
             return 0;
@@ -317,6 +357,7 @@ public class Bot {
         }
     }
 
+    // Mengembalikan kecepatan yang selevel lebih rendah daripada spd
     private Integer getPrevSpeed(int spd) {
         if (spd == SPEED_STATE_1 || spd == SPEED_STATE_2 || spd == INITIAL_SPEED) {
             return SPEED_STATE_1;
@@ -335,6 +376,7 @@ public class Bot {
         }
     }
 
+    // Mengembalikan kecepatan yang selevel lebih rendah daripada spd apabila mengeksekusi command Decelerate
     private Integer getDecSpeed(int spd) {
         if (spd == SPEED_STATE_1) {
             return MINIMUM_SPEED;
@@ -359,6 +401,7 @@ public class Bot {
         }
     }
 
+    // Mengembalikan kecepatan yang selevel lebih tinggi daripada spd
     private Integer getNextSpeed(int spd) {
         if (spd == MINIMUM_SPEED) {
             return SPEED_STATE_1;
@@ -377,6 +420,7 @@ public class Bot {
         }
     }
 
+    // Mengecek apakah bot memiliki powerup powerUpToCheck
     private Boolean hasPowerUp(PowerUps powerUpToCheck, PowerUps[] available) {
         for (PowerUps powerUp: available) {
             if (powerUp.equals(powerUpToCheck)) {
@@ -386,6 +430,8 @@ public class Bot {
         return false;
     }
 
+    // Membandingkan hasil eksekusi dua command, mengambil command yang memenuhi fungsi objektif dengan lebih baik
+    // Memaksimumkan kecepatan, Memaksimumkan lokasi, Memaksimumkan perolehan powerups, Meminimumkan perolehan damage, dan Memaksimumkan perolehan score
     private ArrayList<Object> stateCompare(ArrayList<Object> one, ArrayList<Object> two) {
         Integer val1 = (Integer) one.get(2);
         Integer val2 = (Integer) two.get(2);
@@ -440,6 +486,9 @@ public class Bot {
         }
     }
 
+    // Mengecek valid atau tidak command DO_NOTHING, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfDoNothing(List<Object> blocks) {
         boolean isValid = true;
         int locationForward = myCar.position.block + myCar.speed;
@@ -487,6 +536,9 @@ public class Bot {
         return ret;
     }
 
+    // Mengecek valid atau tidak command ACCELERATE, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfAccelerate(List<Object> blocks) {
         boolean isValid = true;
         int locationForward = myCar.position.block + getNextSpeed(myCar.speed);
@@ -541,6 +593,9 @@ public class Bot {
         return ret;
     }
 
+    // Mengecek valid atau tidak command ACCELERATE, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfDecelerate(List<Object> blocks) {
         boolean isValid = true;
         int locationForward = myCar.position.block + getDecSpeed(myCar.speed);
@@ -556,7 +611,7 @@ public class Bot {
             speedAfter = myCar.speed;
             locationForward = myCar.position.block;
         }
-        else {
+        else { //Melakukan perhitungan berdasarkan blocks yang terdapat pada lane
             for (int i = 1; i <= batas; i++) {
 //                System.out.println(i);
                 if (blocks.get(i) == Terrain.FINISH) {
@@ -595,6 +650,9 @@ public class Bot {
         return ret;
     }
 
+    // Mengecek valid atau tidak command TURN_LEFT, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfTurnLeft() {
         boolean isValid = true;
         int locationForward = myCar.position.block + myCar.speed - 1;
@@ -650,6 +708,9 @@ public class Bot {
         return ret;
     }
 
+    // Mengecek valid atau tidak command TURN_RIGHT, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfTurnRight() {
         boolean isValid = true;
         int locationForward = myCar.position.block + myCar.speed - 1;
@@ -705,6 +766,9 @@ public class Bot {
         return ret;
     }
 
+    // Mengecek valid atau tidak command USE_BOOST, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfUseBoost(List<Object> blocks) {
         boolean isValid = true;
         int locationForward = myCar.position.block + BOOST_SPEED;
@@ -760,6 +824,9 @@ public class Bot {
         return ret;
     }
 
+    // Mengecek valid atau tidak command USE_OIL, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfUseOil(List<Object> blocks) {
         boolean isValid = true;
         int locationForward = myCar.position.block + myCar.speed;
@@ -813,6 +880,9 @@ public class Bot {
         return ret;
     }
 
+    // Mengecek valid atau tidak command USE_TWEET, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfUseTweet(List<Object> blocks) {
         boolean isValid = true;
         int locationForward = myCar.position.block + myCar.speed;
@@ -866,6 +936,7 @@ public class Bot {
         return ret;
     }
 
+    // Memeriksa apakah terdapat rintangan
     private boolean isThereObstacle (List<Object> blocks, int maxIdxCheck) {
         int i = 0;
         boolean foundObstacle = false;
@@ -883,6 +954,7 @@ public class Bot {
         return foundObstacle;
     }
 
+    // Memeriksa apakah terdapat mobil lawan di depan bot myCar dalam jarak jangkauan myCar
     private boolean isThereOpponent () {
         boolean foundOpponent = false;
         int opX = opponent.position.block + opponent.speed;
@@ -896,10 +968,15 @@ public class Bot {
         return foundOpponent;
     }
 
+    // Memeriksa apakah terdapat block FINISH 
     private boolean isThereFinish (List<Object> blocks) {
         return (blocks.contains(Terrain.FINISH));
     }
 
+
+    // Mengecek valid atau tidak command USE_LIZARD, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfUseLizard() {
         boolean isValid = true;
         int locationForward = myCar.position.block + myCar.speed;
@@ -949,6 +1026,10 @@ public class Bot {
         return ret;
     }
 
+
+    // Mengecek valid atau tidak command USE_EMP, kecepatan yang dihasilkan setelah mengeksekusi command ini,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfUseEmp(List<Object> blocks) {
         boolean isValid = true;
         int locationForward = myCar.position.block + myCar.speed;
@@ -1002,6 +1083,9 @@ public class Bot {
         return ret;
     }
 
+    // Mengecek kecepatan yang dihasilkan setelah mengeksekusi command FIX,
+    // lokasi yang dicapai setelah command ini selesai dicapai, damage yang didapat dengan mengeksekusi command ini,
+    // jumlah powerup yang didapatkan dengan mengeksekusi command ini, dan tambahan score yang didapatkan
     private ArrayList<Object> whatIfFix() {
         boolean isValid = true;
         int locationForward = myCar.position.block;

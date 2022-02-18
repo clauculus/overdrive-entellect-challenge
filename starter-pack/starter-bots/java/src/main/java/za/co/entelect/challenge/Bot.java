@@ -3,7 +3,6 @@ package za.co.entelect.challenge;
 import za.co.entelect.challenge.command.*;
 import za.co.entelect.challenge.entities.*;
 import za.co.entelect.challenge.enums.PowerUps;
-import za.co.entelect.challenge.enums.State;
 import za.co.entelect.challenge.enums.Terrain;
 
 import java.util.*;
@@ -48,13 +47,13 @@ public class Bot {
 
     public Command run() {
         List<Object> blocks = getBlocksInFront(myCar.position.lane, myCar.position.block);
+//        System.out.println(blocks);
 
         ArrayList<Object> comp;
         ArrayList<Object> res;
         String best = "DO_NOTHING";
 
-        if (myCar.state == State.HIT_WALL || myCar.state == State.HIT_MUD ||
-            myCar.state == State.HIT_CYBER_TRUCK || myCar.state == State.HIT_OIL) {
+        if (checkOpponentCollision()) {
             comp = whatIfTurnLeft();
             if (Boolean.TRUE.equals(comp.get(0))) {
                 best = "TURN_LEFT";
@@ -68,17 +67,59 @@ public class Bot {
             }
 
             if (best.equals("TURN_LEFT")) {
+//                System.out.println("TURN_LEFT");
+                return C_TURN_LEFT;
+            } else if (best.equals("TURN_RIGHT")) {
+//                System.out.println("TURN_RIGHT");
+                return C_TURN_RIGHT;
+            }
+        }
+
+        if (myCar.speed == 0 && myCar.damage == 5) {
+            return C_FIX;
+        }
+
+        if (myCar.boosting) {
+            List<Object> blocksBoost = getBlocksInFront(myCar.position.lane, myCar.position.block, myCar.speed);
+            int myLaneObs = countObstacles(blocksBoost);
+            int bestChoiceLane = 0;
+
+            if (myCar.position.lane > 1) {
+                blocksBoost = getBlocksInFront(myCar.position.lane-1, myCar.position.block, myCar.speed);
+                blocksBoost.remove(blocksBoost.size()-1);
+                int temp = countObstacles(blocksBoost);
+                if (temp < myLaneObs) {
+                    bestChoiceLane = -1;
+                    myLaneObs = temp;
+                }
+            }
+            if (myCar.position.lane < 4) {
+                blocksBoost = getBlocksInFront(myCar.position.lane+1, myCar.position.block, myCar.speed);
+                blocksBoost.remove(blocksBoost.size()-1);
+                int temp = countObstacles(blocksBoost);
+                if (temp < myLaneObs) {
+                    bestChoiceLane = 1;
+                    myLaneObs = temp;
+                }
+            }
+
+            if (bestChoiceLane == -1) {
                 return C_TURN_LEFT;
             }
-            else if (best.equals("TURN_RIGHT")) {
+            else if (bestChoiceLane == 0) {
+                return C_DO_NOTHING;
+            }
+            else {
                 return C_TURN_RIGHT;
             }
         }
 
         comp = whatIfDoNothing(blocks);
         best = "DO_NOTHING";
+//        System.out.println("DO_NOTHING");
         res = whatIfAccelerate(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("ACCELERATE");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "ACCELERATE";
@@ -86,6 +127,7 @@ public class Bot {
         }
         res = whatIfDecelerate(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("DECELERATE");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "DECELERATE";
@@ -93,6 +135,7 @@ public class Bot {
         }
         res = whatIfTurnLeft();
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("TURN_LEFT");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "TURN_LEFT";
@@ -100,6 +143,7 @@ public class Bot {
         }
         res = whatIfTurnRight();
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("TURN_RIGHT");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "TURN_RIGHT";
@@ -107,6 +151,7 @@ public class Bot {
         }
         res = whatIfUseBoost(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("USE_BOOST");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "USE_BOOST";
@@ -114,13 +159,15 @@ public class Bot {
         }
         res = whatIfUseOil(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("USE_OIL");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "USE_OIL";
             }
         }
-        res = whatIfUseLizard(blocks);
+        res = whatIfUseLizard();
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("USE_LIZARD");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "USE_LIZARD";
@@ -128,20 +175,15 @@ public class Bot {
         }
         res = whatIfUseEmp(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("USE_EMP");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "USE_EMP";
             }
         }
-        res = whatIfDecelerate(blocks);
-        if (Boolean.TRUE.equals(res.get(0))) {
-            comp = stateCompare(comp, res);
-            if (comp.equals(res)) {
-                best = "DECELERATE";
-            }
-        }
         res = whatIfFix();
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("FIX");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "FIX";
@@ -149,56 +191,60 @@ public class Bot {
         }
         res = whatIfUseTweet(blocks);
         if (Boolean.TRUE.equals(res.get(0))) {
+//            System.out.println("USE_TWEET");
             comp = stateCompare(comp, res);
             if (comp.equals(res)) {
                 best = "USE_TWEET";
             }
         }
-
         if (best.equals("DO_NOTHING")) {
+//            System.out.println("DO_NOTHING");
             return C_DO_NOTHING;
         }
         else if (best.equals("ACCELERATE")) {
+//            System.out.println("ACCELERATE");
             return C_ACCELERATE;
         }
         else if (best.equals("DECELERATE")) {
+//            System.out.println("DECELERATE");
             return C_DECELERATE;
         }
         else if (best.equals("TURN_LEFT")) {
+//            System.out.println("TURN_LEFT");
             return C_TURN_LEFT;
         }
         else if (best.equals("TURN_RIGHT")) {
+//            System.out.println("TURN_RIGHT");
             return C_TURN_RIGHT;
         }
         else if (best.equals("USE_BOOST")) {
+//            System.out.println("USE_BOOST");
             return C_BOOST;
         }
         else if (best.equals("USE_OIL")) {
+//            System.out.println("USE_OIL");
             return C_OIL;
         }
         else if (best.equals("USE_LIZARD")) {
+//            System.out.println("USE_LIZARD");
             return C_LIZARD;
         }
         else if (best.equals("USE_TWEET")) {
-            int xy = searchTweetPos();
-            if (xy != -1){
-                return new TweetCommand(opponent.position.lane, xy);
-            }
+//            System.out.println("USE_TWEET");
+            return new TweetCommand(opponent.position.lane, opponent.position.block+opponent.speed+1);
         }
         else if (best.equals("USE_EMP")) {
+//            System.out.println("USE_EMP");
             return C_EMP;
         }
         else if (best.equals("FIX")) {
+//            System.out.println("FIX");
             return C_FIX;
         }
 
         return C_DO_NOTHING;
     }
 
-    /**
-     * Returns map of blocks and the objects in the for the current lanes, returns the amount of blocks that can be
-     * traversed at max speed.
-     **/
     private List<Object> getBlocksInFront(int lane, int block) {
         List<Lane[]> map = gameState.lanes;
         List<Object> blocks = new ArrayList<>();
@@ -207,7 +253,9 @@ public class Bot {
         Lane[] laneList = map.get(lane - 1);
         for (int i = max(block - startBlock, 0); i <= block - startBlock + Bot.maxSpeed + 1; i++) {
             if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
-                blocks.add(laneList[i].terrain);
+                if (laneList[i].terrain == Terrain.FINISH) {
+                    blocks.add(laneList[i].terrain);
+                }
                 break;
             }
 
@@ -217,7 +265,41 @@ public class Bot {
         return blocks;
     }
 
-    private Integer getMaxDamageSpeed(int damage) {
+    private List<Object> getBlocksInFront(int lane, int block, int spd) {
+        List<Lane[]> map = gameState.lanes;
+        List<Object> blocks = new ArrayList<>();
+        int startBlock = map.get(0)[0].position.block;
+
+        Lane[] laneList = map.get(lane - 1);
+        for (int i = max(block - startBlock, 0); i <= block - startBlock + spd + 1; i++) {
+            if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
+                if (laneList[i].terrain == Terrain.FINISH) {
+                    blocks.add(laneList[i].terrain);
+                }
+                break;
+            }
+
+            blocks.add(laneList[i].terrain);
+
+        }
+        return blocks;
+    }
+
+    private int countObstacles(List<Object> blocksBoost) {
+        int obsInMyLane = Collections.frequency(blocksBoost, Terrain.MUD)
+                + Collections.frequency(blocksBoost, Terrain.OIL_SPILL)
+                + Collections.frequency(blocksBoost, Terrain.WALL);
+        if (isThereOpponent()) {
+            obsInMyLane += 1;
+        }
+        return obsInMyLane;
+    }
+
+    private boolean checkOpponentCollision() {
+        return (opponent.position.lane == myCar.position.lane && opponent.position.block == myCar.position.block+1);
+    }
+
+    private int getMaxDamageSpeed(int damage) {
         if (damage == 5) {
             return 0;
         }
@@ -325,52 +407,37 @@ public class Bot {
             else {
                 val1 = (Integer) one.get(4);
                 val2 = (Integer) two.get(4);
-                if (Integer.compare(val1, val2) == -1) {
+                if (Integer.compare(val1, val2) == 1) {
                     return one;
                 }
-                else if (Integer.compare(val1, val2) == 1) {
+                else if (Integer.compare(val1, val2) == -1) {
                     return two;
                 }
                 else {
                     val1 = (Integer) one.get(3);
                     val2 = (Integer) two.get(3);
-                    if (Integer.compare(val1, val2) == -1) {
-                        return one;
-                    }
-                    else if (Integer.compare(val1, val2) == 1) {
+                    if (Integer.compare(val1, val2) == 1) {
                         return two;
+                    }
+                    else if (Integer.compare(val1, val2) == -1) {
+                        return one;
                     }
                     else {
                         val1 = (Integer) one.get(5);
                         val2 = (Integer) two.get(5);
-                        if (Integer.compare(val1, val2) == -1) {
+                        if (Integer.compare(val1, val2) == 1) {
                             return one;
                         }
-                        else if (Integer.compare(val1, val2) == 1) {
+                        else if (Integer.compare(val1, val2) == -1) {
+                            return two;
+                        }
+                        else {
                             return two;
                         }
                     }
                 }
             }
         }
-        return one;
-    }
-
-    private Integer searchTweetPos() {
-        int xy = -1;
-        int opSpeed = opponent.speed;
-        int opBlock = opponent.position.block + opSpeed;
-        List<Object> tempBlock = getBlocksInFront(opponent.position.lane, opponent.position.block);
-        for (int i = 0; i <= opSpeed; i++) {
-            if (tempBlock.get(i+1) == Terrain.FINISH) {
-                break;
-            }
-            if (tempBlock.get(i) == Terrain.EMPTY) {
-                xy = opBlock + i;
-                break;
-            }
-        }
-        return xy;
     }
 
     private ArrayList<Object> whatIfDoNothing(List<Object> blocks) {
@@ -383,8 +450,9 @@ public class Bot {
         ArrayList<Object> ret = new ArrayList <>();
         int batas = Math.min(Math.min(myCar.speed, Bot.maxSpeed), blocks.size());
 
-        for (int i = 0; i <= batas; i++) {
-            if (blocks.get(i+1) == Terrain.FINISH && i < batas) {
+        for (int i = 1; i <= batas; i++) {
+//            System.out.println(i);
+            if (blocks.get(i) == Terrain.FINISH) {
                 break;
             }
             if (blocks.get(i) == Terrain.MUD) {
@@ -435,8 +503,9 @@ public class Bot {
             locationForward = myCar.position.block;
         }
         else {
-            for (int i = 0; i <= batas; i++) {
-                if (blocks.get(i+1) == Terrain.FINISH && i < batas) {
+            for (int i = 1; i <= batas; i++) {
+//                System.out.println(i);
+                if (blocks.get(i) == Terrain.FINISH) {
                     break;
                 }
                 if (blocks.get(i) == Terrain.MUD) {
@@ -482,14 +551,15 @@ public class Bot {
         ArrayList<Object> ret = new ArrayList <>();
         int batas = Math.min(Math.min(speedAfter, Bot.maxSpeed), blocks.size());
 
-        if (myCar.speed <= MINIMUM_SPEED) {
+        if (myCar.speed <= SPEED_STATE_1) {
             isValid = false;
             speedAfter = myCar.speed;
             locationForward = myCar.position.block;
         }
         else {
-            for (int i = 0; i <= batas; i++) {
-                if (blocks.get(i+1) == Terrain.FINISH && i < batas) {
+            for (int i = 1; i <= batas; i++) {
+//                System.out.println(i);
+                if (blocks.get(i) == Terrain.FINISH) {
                     break;
                 }
                 if (blocks.get(i) == Terrain.MUD) {
@@ -542,8 +612,9 @@ public class Bot {
             List<Object> blocks = getBlocksInFront(myCar.position.lane-1, myCar.position.block);
             blocks.remove(blocks.size()-1);
             int batas = Math.min(Math.min(myCar.speed, Bot.maxSpeed), blocks.size()-1);
-            for (int i = 0; i < batas; i++) {
-                if (blocks.get(i+1) == Terrain.FINISH && i < batas - 1) {
+            for (int i = 1; i < batas; i++) {
+//                System.out.println(i);
+                if (blocks.get(i) == Terrain.FINISH) {
                     break;
                 }
                 if (blocks.get(i) == Terrain.MUD) {
@@ -596,8 +667,9 @@ public class Bot {
             List<Object> blocks = getBlocksInFront(myCar.position.lane+1, myCar.position.block);
             blocks.remove(blocks.size()-1);
             int batas = Math.min(Math.min(myCar.speed, Bot.maxSpeed), blocks.size()-1);
-            for (int i = 0; i < batas; i++) {
-                if (blocks.get(i+1) == Terrain.FINISH && i < batas -1) {
+            for (int i = 1; i < batas; i++) {
+//                System.out.println(i);
+                if (blocks.get(i) == Terrain.FINISH) {
                     break;
                 }
                 if (blocks.get(i) == Terrain.MUD) {
@@ -643,15 +715,16 @@ public class Bot {
         ArrayList<Object> ret = new ArrayList <>();
         int batas = Math.min(Math.min(speedAfter, Bot.maxSpeed), blocks.size());
 
-        if (!hasPowerUp(PowerUps.BOOST, myCar.powerups)) {
+        if (!hasPowerUp(PowerUps.BOOST, myCar.powerups) || myCar.boosting || blocks.contains(Terrain.MUD) || blocks.contains(Terrain.OIL_SPILL) || blocks.contains(Terrain.WALL)) {
             isValid = false;
             locationForward = myCar.position.block + myCar.speed;
             speedAfter = myCar.speed;
             scoreAddition = 0;
         }
         else {
-            for (int i = 0; i <= batas; i++) {
-                if (blocks.get(i+1) == Terrain.FINISH && i < batas) {
+            for (int i = 1; i <= batas; i++) {
+//                System.out.println(i);
+                if (blocks.get(i) == Terrain.FINISH) {
                     break;
                 }
                 if (blocks.get(i) == Terrain.MUD) {
@@ -697,13 +770,14 @@ public class Bot {
         ArrayList<Object> ret = new ArrayList <>();
         int batas = Math.min(Math.min(myCar.speed, Bot.maxSpeed), blocks.size());
 
-        if (!hasPowerUp(PowerUps.OIL, myCar.powerups)) {
+        if (!hasPowerUp(PowerUps.OIL, myCar.powerups) || (opponent.position.lane != myCar.position.lane && opponent.position.block >= myCar.position.block)) {
             isValid = false;
             scoreAddition = 0;
         }
         else {
-            for (int i = 0; i <= batas; i++) {
-                if (blocks.get(i+1) == Terrain.FINISH && i < batas) {
+            for (int i = 1; i <= batas; i++) {
+//                System.out.println(i);
+                if (blocks.get(i) == Terrain.FINISH) {
                     break;
                 }
                 if (blocks.get(i) == Terrain.MUD) {
@@ -747,15 +821,16 @@ public class Bot {
         int pu = 0;
         int scoreAddition = 4;
         ArrayList<Object> ret = new ArrayList <>();
-        int batas = Math.min(Math.min(myCar.speed, Bot.maxSpeed), blocks.size());
+        int batas = Math.min(myCar.speed, blocks.size());
 
         if (!hasPowerUp(PowerUps.TWEET, myCar.powerups)) {
             isValid = false;
             scoreAddition = 0;
         }
         else {
-            for (int i = 0; i <= batas; i++) {
-                if (blocks.get(i+1) == Terrain.FINISH && i < batas) {
+            for (int i = 1; i <= batas; i++) {
+//                System.out.println(i);
+                if (blocks.get(i) == Terrain.FINISH) {
                     break;
                 }
                 if (blocks.get(i) == Terrain.MUD) {
@@ -791,7 +866,41 @@ public class Bot {
         return ret;
     }
 
-    private ArrayList<Object> whatIfUseLizard(List<Object> blocks) {
+    private boolean isThereObstacle (List<Object> blocks, int maxIdxCheck) {
+        int i = 0;
+        boolean foundObstacle = false;
+        int opX = opponent.position.block + opponent.speed;
+        int myX = myCar.position.block;
+        int opY = opponent.position.lane;
+
+        while (i <= maxIdxCheck && !foundObstacle) {
+            if (blocks.get(i) == Terrain.WALL || blocks.get(i) == Terrain.MUD || blocks.get(i) == Terrain.OIL_SPILL ||
+                (opY == myCar.position.lane && opX > myX && opX < myX+myCar.speed)) {
+                foundObstacle = true;
+            }
+            i++;
+        }
+        return foundObstacle;
+    }
+
+    private boolean isThereOpponent () {
+        boolean foundOpponent = false;
+        int opX = opponent.position.block + opponent.speed;
+        int myX = myCar.position.block;
+        int opY = opponent.position.lane;
+
+        if (opY == myCar.position.lane && opX > myX && opX < myX+myCar.speed) {
+            foundOpponent = true;
+        }
+
+        return foundOpponent;
+    }
+
+    private boolean isThereFinish (List<Object> blocks) {
+        return (blocks.contains(Terrain.FINISH));
+    }
+
+    private ArrayList<Object> whatIfUseLizard() {
         boolean isValid = true;
         int locationForward = myCar.position.block + myCar.speed;
         int speedAfter = myCar.speed;
@@ -799,16 +908,16 @@ public class Bot {
         int pu = 0;
         int scoreAddition = 4;
         ArrayList<Object> ret = new ArrayList <>();
+        List<Object> blocks = getBlocksInFront(myCar.position.lane, myCar.position.block, myCar.speed);
+        int batas = Math.min(myCar.speed, blocks.size()-1);
 
-        if (!hasPowerUp(PowerUps.LIZARD, myCar.powerups)) {
+        if (!hasPowerUp(PowerUps.LIZARD, myCar.powerups) || !isThereObstacle(blocks, batas)) {
             isValid = false;
             scoreAddition = 0;
         }
         else {
-            int finishterrain = blocks.indexOf(Terrain.FINISH);
-            if ((myCar.speed < finishterrain || finishterrain == -1) && myCar.speed <= Bot.maxSpeed) {
-                //finish masih di depan atau nggak ada finish, jadi pake lizard biasa
-                //hitung damage, pu, speed yg di gain di locationforward
+//            System.out.println(batas);
+            if (myCar.speed < blocks.size() && !isThereFinish(blocks)) {
                 if (blocks.get(myCar.speed) == Terrain.MUD) {
                     scoreAddition -= 3;
                     damageAfter += 1;
@@ -827,7 +936,7 @@ public class Bot {
                     scoreAddition += 4;
                     pu += 1;
                 }
-            } // else finish dilompati, nggak ngapa-ngapain langsung finish
+            }
         }
 
         ret.add(isValid);
@@ -855,8 +964,9 @@ public class Bot {
             scoreAddition = 0;
         }
         else {
-            for (int i = 0; i <= batas; i++) {
-                if (blocks.get(i+1) == Terrain.FINISH && i < batas) {
+            for (int i = 1; i <= batas; i++) {
+//                System.out.println(i);
+                if (blocks.get(i) == Terrain.FINISH) {
                     break;
                 }
                 if (blocks.get(i) == Terrain.MUD) {
